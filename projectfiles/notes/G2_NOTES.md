@@ -71,15 +71,50 @@ Every file in the project is untracked right after `git init`.
 
 ## 3. `.gitignore` — files Git must never snapshot
 
-A plain text file listing paths Git should skip. Flutter created one already.
+**A plain text file, one rule per line, listing what Git must pretend does not exist.**
+No magic. Anything matching a line: never appears in `git status`, never staged by
+`git add .`, never enters a commit.
 
-It lists generated output: `build/`, `.dart_tool/`, etc.
+Flutter created this file for you (`flutter create` did it). Most languages ship a
+standard one. You will rarely edit it — but you will add a line one day.
 
-Why ignore them: Flutter **regenerates** them from your source on every compile.
-Snapshotting them would add hundreds of MB carrying zero information. Ignored files do
-not appear in `git status` and are never committed.
+### Syntax
+| Pattern | Means |
+|---|---|
+| `# Miscellaneous` | comment — for humans, ignored by Git |
+| `.idea/` | trailing slash = a **folder**, and everything inside |
+| `*.log` | `*` = anything. Matches `error.log`, `build.log`, any `.log` file |
+| `/build/` | leading slash = only at the **top** of the project, not nested deeper |
+| `#.vscode/` | commented out, so it is **NOT** ignored |
 
-Rule of thumb: **source goes in Git; anything a tool can rebuild does not.**
+That last one is deliberate: Flutter left `.vscode/` trackable because you may *want*
+editor settings shared with teammates. Your choice to uncomment.
+
+### Why ignore anything — four reasons, all present in this project's file
+1. **Regenerated output** — `/build/`, `.dart_tool/`. Flutter rebuilds them from source
+   on every compile. Committing them = hundreds of MB, zero information, stale
+   immediately.
+2. **Editor settings** — `.idea/`, `*.iml`. Belong to Android Studio on *your* machine.
+   A teammate on VS Code does not want them.
+3. **OS junk** — `.DS_Store`, a file macOS drops into every folder.
+4. **Secrets** — the big one in real projects. API keys, passwords. **In Stage 5, the
+   Firebase config file goes here** — otherwise the keys get published to GitHub for
+   the world to read. Common and expensive mistake.
+
+### Rule of thumb
+> **Your source code goes in Git. Anything a tool can regenerate, or anything secret,
+> does not.**
+
+### Proof seen in this lesson
+`.dart_tool/`, `.idea/` and `*.iml` are all listed in the file — and `.dart_tool`,
+`.idea` and `vegbill.iml` never appeared in a single `git status` or commit, though
+they sit in the folder.
+
+### The trap worth knowing now
+`.gitignore` only affects files Git is **not already tracking**. Commit a file first,
+add it to `.gitignore` afterwards, and Git keeps tracking it — the rule is simply
+ignored. To stop it: `git rm --cached <file>`. The day this bites, you will have no
+idea why the file will not go away.
 
 ---
 
@@ -145,9 +180,48 @@ Same history, one line per commit — hash + message. What you actually use day 
 
 ---
 
-## 6. GATE
+## 6. GATE — PASSED
 
-`git log` shows **one** commit, with your message and your name as Author.
+```
+commit a9a33a9603ed2ee7adbba05df0c7e405cc0c705e (HEAD -> master)
+Author: CodeByRajeshPyla <rajeshpyla78@gmail.com>
+Date:   Wed Sep 23 14:03:39 2026 +0530
+
+    Initial commit: Flutter project created
+```
+First snapshot of SmartVeg: 50 files, 2639 insertions.
+
+### Things this output teaches
+- The `Author:` line was **never typed**. Git read it from the global config (G1).
+- `a9a33a9603ed...` is the full **40-character hash**; `a9a33a9` is the short form.
+  It is computed from the snapshot's contents, so it is unique and unforgeable.
+- **`HEAD`** = "you are here" — Git's pointer to your current position in history.
+- After committing, `git status` says **`nothing to commit, working tree clean`**:
+  the folder and the last snapshot are identical. Nothing unsaved. This is the state
+  to be in at the end of every lesson.
+
+### Reading the commit's own output
+```
+[master (root-commit) a9a33a9] Initial commit: Flutter project created
+ 50 files changed, 2639 insertions(+)
+```
+- `master` — the branch (G6 topic).
+- `(root-commit)` — the **first commit in the repo**; it has no parent. Seen exactly
+  once in a project's life. Every later commit points back to the one before it,
+  forming a chain.
+- `a9a33a9` — short commit hash.
+- `2639 insertions(+)` — 2639 lines added, none removed; everything was new.
+- `create mode 100644` — new file, ordinary permissions.
+
+### Two things observed on the way
+- **Git tracks files, not folders.** Before staging, status collapsed `android/` to one
+  line; after staging it listed all 23 files inside. Consequence: Git cannot store an
+  empty folder — there is no file in it to track.
+- **CRLF warnings on `git add` are not errors.** Windows ends lines with CR+LF, Linux
+  and Mac with LF. Git stores LF internally so a file is identical everywhere, and
+  converts back on checkout. The warning just announces that conversion. Ignore it.
+- **`git log` opens a pager** when output is long. Press **`q`** to quit back to the
+  prompt; space/arrows scroll.
 
 ---
 
