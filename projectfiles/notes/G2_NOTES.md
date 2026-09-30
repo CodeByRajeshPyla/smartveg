@@ -1,4 +1,4 @@
-# G2 — Init, Add, Commit (complete notes)
+g# G2 — Init, Add, Commit (complete notes)
 
 Course: 02_GIT_GITHUB.md · Project folder: `D:\vegbill`
 
