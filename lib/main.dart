@@ -45,7 +45,7 @@ class SmartvegApp extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                "IOT weighing & billing ",
+                "IoT weighing & billing",
                 style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
               ),
             ],
