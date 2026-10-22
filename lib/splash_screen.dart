@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class Spalshscreen extends StatefulWidget {
   const Spalshscreen({super.key});
@@ -7,6 +8,28 @@ class Spalshscreen extends StatefulWidget {
 }
 
 class _SpalshscreenState extends State<Spalshscreen> {
+  int _ticks = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _ticks = _ticks + 1;
+      });
+      if (_ticks >= 10) {
+        timer.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,6 +69,24 @@ class _SpalshscreenState extends State<Spalshscreen> {
             Text(
               "IoT weighing & billing",
               style: TextStyle(fontSize: 16, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 40),
+            Container(
+              padding: EdgeInsets.all(16),
+              color: const Color(0xFFF2F3FF),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _ticks >= 10
+                        ? 'Scale found!'
+                        : 'Scanning for ESP32-Scale...',
+                  ),
+
+                  SizedBox(height: 12),
+                  LinearProgressIndicator(value: _ticks / 10),
+                ],
+              ),
             ),
           ],
         ),
