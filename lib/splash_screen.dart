@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class Spalshscreen extends StatefulWidget {
   const Spalshscreen({super.key});
@@ -22,12 +23,31 @@ class _SpalshscreenState extends State<Spalshscreen> {
         timer.cancel();
       }
     });
+    _scan();
+    print('2. initState finished');
   }
 
   @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  Future<void> _scan() async {
+    await FlutterBluePlus.startScan(
+      withNames: ['ESP32-Scale'],
+      timeout: const Duration(seconds: 5),
+    );
+    await Future.delayed(const Duration(seconds: 5));
+    print('found ${FlutterBluePlus.lastScanResults.length} device(s)');
+    if (FlutterBluePlus.lastScanResults.isEmpty) {
+      print('scale not found');
+      return;
+    }
+
+    final device = FlutterBluePlus.lastScanResults.first.device;
+    await device.connect(license: License.nonprofit);
+    print('connected!');
   }
 
   @override
