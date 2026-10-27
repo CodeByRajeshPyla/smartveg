@@ -11,6 +11,8 @@ class Spalshscreen extends StatefulWidget {
 class _SpalshscreenState extends State<Spalshscreen> {
   int _ticks = 0;
   Timer? _timer;
+  double _grams = 0;
+  bool _isStable = false;
 
   @override
   void initState() {
@@ -48,6 +50,23 @@ class _SpalshscreenState extends State<Spalshscreen> {
     final device = FlutterBluePlus.lastScanResults.first.device;
     await device.connect(license: License.nonprofit);
     print('connected!');
+    final services = await device.discoverServices();
+    final service = services.firstWhere(
+      (s) => s.uuid == Guid('12345678-1234-1234-1234-1234567890ab'),
+    );
+    final weightChar = service.characteristics.firstWhere(
+      (c) => c.uuid == Guid('abcd1234-5678-90ab-cdef-1234567890ab'),
+    );
+    print('weight char: ${weightChar.uuid}');
+    await weightChar.setNotifyValue(true);
+    weightChar.lastValueStream.listen((bytes) {
+      final text = String.fromCharCodes(bytes);
+      final parts = text.split(',');
+      setState(() {
+        _grams = double.parse(parts[0]);
+        _isStable = parts[1] == '1';
+      });
+    });
   }
 
   @override
@@ -105,6 +124,12 @@ class _SpalshscreenState extends State<Spalshscreen> {
 
                   SizedBox(height: 12),
                   LinearProgressIndicator(value: _ticks / 10),
+                  const SizedBox(height: 12),
+                  Text(
+                    '${_grams.toStringAsFixed(1)} g',
+                    style: const TextStyle(fontSize: 32),
+                  ),
+                  Text(_isStable ? 'Stable' : 'Settling...'),
                 ],
               ),
             ),
