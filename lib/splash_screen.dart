@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'weight_bar.dart';
 
 class Spalshscreen extends StatefulWidget {
   const Spalshscreen({super.key});
@@ -13,6 +14,7 @@ class _SpalshscreenState extends State<Spalshscreen> {
   Timer? _timer;
   double _grams = 0;
   bool _isStable = false;
+  BluetoothCharacteristic? _weightChar;
 
   @override
   void initState() {
@@ -58,6 +60,7 @@ class _SpalshscreenState extends State<Spalshscreen> {
       (c) => c.uuid == Guid('abcd1234-5678-90ab-cdef-1234567890ab'),
     );
     print('weight char: ${weightChar.uuid}');
+    _weightChar = weightChar;
     await weightChar.setNotifyValue(true);
     weightChar.lastValueStream.listen((bytes) {
       final text = String.fromCharCodes(bytes);
@@ -131,6 +134,17 @@ class _SpalshscreenState extends State<Spalshscreen> {
                   ),
                   Text(_isStable ? 'Stable' : 'Settling...'),
                 ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: WeightBar(
+                grams: _grams,
+                isStable: _isStable,
+                onTare: () {
+                  _weightChar?.write('t'.codeUnits);
+                },
               ),
             ),
           ],
