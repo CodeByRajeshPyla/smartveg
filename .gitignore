@@ -43,3 +43,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Large media: keep videos out of git (link them instead)
+*.mp4
+*.mov

@@ -18,6 +18,23 @@ class _WeighScreenState extends State<WeighScreen> {
   bool _isStable = false;
   BluetoothCharacteristic? _weightChar;
   StreamSubscription<List<int>>? _weightSub;
+  String _filter = 'top';
+
+  static const Map<String, String> _chips = {
+    'top': 'Top (80%)',
+    'regular': 'Regular',
+    'piece': 'Piece / Bunch',
+    'slow': 'Slow',
+    'all': 'All',
+  };
+
+  List<Product> get _visibleProducts {
+    return products.where((p) {
+      if (_filter == 'all') return true;
+      if (_filter == 'piece') return !p.isWeighed;
+      return p.category == _filter;
+    }).toList();
+  }
 
   @override
   void initState() {
@@ -97,6 +114,55 @@ class _WeighScreenState extends State<WeighScreen> {
               },
             ),
           ),
+          if (!_isStable)
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                border: Border.all(color: const Color(0xFFD97706)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.lock_outline, color: Color(0xFFD97706)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Wait for STABLE before selecting a vegetable'),
+                  ),
+                ],
+              ),
+            ),
+
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: Row(
+              children: [
+                for (final chip in _chips.entries)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(chip.value),
+                      selected: _filter == chip.key,
+                      onSelected: (_) {
+                        setState(() {
+                          _filter = chip.key;
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: const Color(0xFF0F766E),
+                      labelStyle: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: _filter == chip.key
+                            ? Colors.white
+                            : const Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -106,9 +172,22 @@ class _WeighScreenState extends State<WeighScreen> {
                 crossAxisSpacing: 12,
                 childAspectRatio: 0.95,
               ),
-              itemCount: products.length,
+              itemCount: _visibleProducts.length,
               itemBuilder: (context, index) {
-                return _tile(products[index]);
+                final p = _visibleProducts[index];
+                return GestureDetector(
+                  onTap: _isStable
+                      ? () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('${p.name} selected')),
+                          );
+                        }
+                      : null,
+                  child: Opacity(
+                    opacity: _isStable ? 1.0 : 0.35,
+                    child: _tile(p),
+                  ),
+                );
               },
             ),
           ),
